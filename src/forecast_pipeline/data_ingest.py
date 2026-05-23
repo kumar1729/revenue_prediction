@@ -4,7 +4,6 @@ import urllib.parse
 import pandas as pd
 import requests
 
-f = '/Users/shubham/Desktop/dataset/forecast_pipeline'
 
 # Get the directory of the current script
 current_dir = os.path.dirname(os.path.abspath(__file__))
