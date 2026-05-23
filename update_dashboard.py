@@ -1,0 +1,1 @@
+print("this script is to update dash board on arival of new model output")
