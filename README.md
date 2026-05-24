@@ -1,10 +1,17 @@
-# My Forecast Library
-A custom library for automated time-series financial modeling.
+# Revenue Forecast Library
 
 
-Automated SEC Data Ingestion & Time-Series Forecasting PipelineAn automated, data-driven machine learning pipeline that dynamically interfaces with the United States Securities and Exchange Commission (SEC) EDGAR API system to extract corporate financial history and generate 1-step-ahead revenue forecasts.The project uses a modular design pattern, leveraging Abstract Base Classes (abc) to allow seamless swapping of mathematical forecasting engines.📋 Table of ContentsArchitecture OverviewProject
+	A custom library for automated time-series financial modeling.
 
- Directory StructureData Pipeline MechanicsInstallation & SetupUsage InstructionsCore ML Forecasting Engine🏗️ Architecture OverviewThe application is structured into two main decoupled automation layers:data_ingest.py (Ingestion Layer): Converts user-supplied ticker strings into a unique 10-digit Central Index Key (CIK), handles secure, rate-compliant compression handshakes with the SEC servers, maps erratic accounting taxonomy shifts, and generates a structured chronological time-series file (.csv).retrain_model.py (ML Engine Layer): Ingests the tabular dataset, dynamically checks chronological periodicity constraints, and invokes an Autoregressive Integrated Moving Average (ARIMA/SARIMAX) statistical framework to predict upcoming corporate financial performance.[Terminal Input: --ticker] ➔ [SEC Dynamic CIK Lookup] ➔ [XBRL Company Facts API] 
+
+ SEC Data Ingestion & Time-Series Forecasting PipelineAn automated, data-driven machine learning pipeline that dynamically interfaces with the United States Securities and Exchange Commission (SEC) EDGAR API system to extract corporate financial history and generate 1-step-ahead revenue forecasts.The project uses a modular design pattern, leveraging Abstract Base Classes (abc) to allow seamless swapping of mathematical forecasting engines.
+
+
+
+ Directory StructureData Pipeline MechanicsInstallation & SetupUsage InstructionsCore ML Forecasting Engine🏗️ Architecture OverviewThe application is structured into two main decoupled automation layers:**data_ingest.py** (Ingestion Layer): Converts user-supplied **ticker** strings into a unique 10-digit Central Index Key (CIK), handles secure, rate-compliant compression handshakes with the SEC servers, maps erratic accounting taxonomy shifts, and generates a structured chronological time-series file (.csv).**retrain_model.py** (ML Engine Layer): Ingests the tabular dataset, dynamically checks chronological periodicity constraints, and invokes an Autoregressive Integrated Moving Average (ARIMA/SARIMAX) statistical framework to predict upcoming corporate financial performance.
+ 
+ 
+ [Terminal Input: --ticker] ➔ [SEC Dynamic CIK Lookup] ➔ [XBRL Company Facts API] 
  
  
                                                                   │
@@ -40,8 +47,17 @@ Automated SEC Data Ingestion & Time-Series Forecasting PipelineAn automated, dat
 cd revenue_prediction
 
 
-Install the necessary third-party analytical dependency packages:bashpip install -r requirements.txt
-Usage InstructionsThe pipeline runs entirely via a single terminal interface command flag.Run Ingestion & Automatic RetrainingExecute data_ingest.py and supply any valid U.S. stock ticker symbol via the --ticker argument:bashpython3 data_ingest.py --ticker AAPL\
+Install the necessary third-party analytical dependency packages:
+
+
+bashpip install -r requirements.txt
+
+
+Usage InstructionsThe pipeline runs entirely via a single terminal interface command flag.Run Ingestion & Automatic RetrainingExecute data_ingest.py and supply any valid U.S. stock ticker symbol via the --ticker argument:
+
+
+
+bashpython3 data_ingest.py --ticker AAPL
 
 
 bash. python3 data_ingest.py --ticker NVDA
