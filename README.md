@@ -11,14 +11,14 @@
  Directory StructureData Pipeline MechanicsInstallation & SetupUsage InstructionsCore ML Forecasting Engine🏗️ Architecture OverviewThe application is structured into two main decoupled automation layers:**data_ingest.py** (Ingestion Layer): Converts user-supplied **ticker** strings into a unique 10-digit Central Index Key (CIK), handles secure, rate-compliant compression handshakes with the SEC servers, maps erratic accounting taxonomy shifts, and generates a structured chronological time-series file (.csv).**retrain_model.py** (ML Engine Layer): Ingests the tabular dataset, dynamically checks chronological periodicity constraints, and invokes an Autoregressive Integrated Moving Average (ARIMA/SARIMAX) statistical framework to predict upcoming corporate financial performance.
  
  
- [Terminal Input: --ticker] ➔ [SEC Dynamic CIK Lookup] ➔ [XBRL Company Facts API] 
+ 	[Terminal Input: --ticker] ➔ [SEC Dynamic CIK Lookup] ➔ [XBRL Company Facts API] 
  
  
                                                                   │
-[Downstream Retraining Engine] 🔀 [ARIMA/SARIMAX Model] 🗃️ [Chronological CSV Data Matrix]
+    [Downstream Retraining Engine] 🔀 [ARIMA/SARIMAX Model] 🗃️ [Chronological CSV Data Matrix]
 
 
-📁 Project Directory Structuretextforecast_pipeline/
+    📁 Project Directory Structuretextforecast_pipeline/
 
 
 │
@@ -44,23 +44,23 @@
  Installation & SetupEnsure you have a Python environment installed (compatible with Python >= 3.8).Clone the project locally from your GitHub profile:bashgit clone https://github.com
  
  
-cd revenue_prediction
+   cd revenue_prediction
 
 
 Install the necessary third-party analytical dependency packages:
 
 
-bashpip install -r requirements.txt
+   bashpip install -r requirements.txt
 
 
 Usage InstructionsThe pipeline runs entirely via a single terminal interface command flag.Run Ingestion & Automatic RetrainingExecute data_ingest.py and supply any valid U.S. stock ticker symbol via the --ticker argument:
 
 
 
-bashpython3 data_ingest.py --ticker AAPL
+   bashpython3 data_ingest.py --ticker AAPL
 
 
-bash. python3 data_ingest.py --ticker NVDA
+   bash. python3 data_ingest.py --ticker NVDA
 
 
 What Happens Behind the Scenes:The script downloads the data and writes a local, unmutated dataset file alongside your scripts (AAPL_historical_financials.csv).data_ingest.py automatically checks for the existence of retrain_model.py and executes it downstream via a secure sub-process call.The training engine isolates missing fields, structures an autowrapped dictionary matrix, determines data seasonality, and outputs a prediction directly to your shell window.Independent Model EvaluationIf you already have a generated data file and want to retrain or evaluate the statistical model directly, run:bashpython3 retrain_model.py --data_path AAPL_historical_financials.csv
