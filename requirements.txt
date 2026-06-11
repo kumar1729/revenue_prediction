@@ -1,0 +1,7 @@
+pandas
+requests
+numpy
+statsmodels
+uvicorn>=0.25.0
+fastapi>=0.104.0
+pydantic>=2.0.0
