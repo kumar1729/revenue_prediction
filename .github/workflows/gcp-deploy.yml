@@ -1,0 +1,114 @@
+name: Build and Deploy to GCP and Azure
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy-gcp:
+    name: Build, push to GCR, and deploy to Cloud Run
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker to use gcloud as credential helper
+        run: |
+          gcloud auth configure-docker gcr.io
+
+      - name: Build Docker image
+        run: |
+          docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/forecast-pipeline:${{ github.sha }} .
+          docker tag gcr.io/${{ secrets.GCP_PROJECT_ID }}/forecast-pipeline:${{ github.sha }} gcr.io/${{ secrets.GCP_PROJECT_ID }}/forecast-pipeline:latest
+
+      - name: Push image to Google Container Registry
+        run: |
+          docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/forecast-pipeline:${{ github.sha }}
+          docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/forecast-pipeline:latest
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy forecast-pipeline \
+            --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/forecast-pipeline:${{ github.sha }} \
+            --region ${{ secrets.GCP_REGION }} \
+            --platform managed \
+            --allow-unauthenticated \
+            --port 8000 \
+            --memory 512Mi \
+            --timeout 300
+
+      - name: Output Cloud Run URL
+        run: |
+          SERVICE_URL=$(gcloud run services describe forecast-pipeline --region ${{ secrets.GCP_REGION }} --format='value(status.url)')
+          echo "GCP Cloud Run deployed at: $SERVICE_URL"
+
+  deploy-to-azure:
+    name: Push to Azure Container Registry and deploy to Web App
+    runs-on: ubuntu-latest
+    needs: build-and-deploy-gcp
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          docker build -t forecast-pipeline:${{ github.sha }} .
+
+      - name: Log in to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Tag image for Azure Container Registry
+        run: |
+          ACR_NAME=${{ secrets.AZURE_CONTAINER_REGISTRY }}
+          ACR_IMAGE=${ACR_NAME}.azurecr.io/forecast-pipeline:${{ github.sha }}
+          docker tag forecast-pipeline:${{ github.sha }} $ACR_IMAGE
+          echo "ACR_IMAGE=$ACR_IMAGE" >> $GITHUB_ENV
+
+      - name: Push to Azure Container Registry
+        run: |
+          ACR_NAME=${{ secrets.AZURE_CONTAINER_REGISTRY }}
+          ACR_IMAGE=${ACR_NAME}.azurecr.io/forecast-pipeline:${{ github.sha }}
+          az acr login --name $ACR_NAME
+          docker push $ACR_IMAGE
+
+      - name: Deploy to Azure Web App
+        run: |
+          ACR_NAME=${{ secrets.AZURE_CONTAINER_REGISTRY }}
+          ACR_IMAGE=${ACR_NAME}.azurecr.io/forecast-pipeline:${{ github.sha }}
+          az webapp config container set \
+            --name ${{ secrets.AZURE_WEBAPP_NAME }} \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --docker-custom-image-name $ACR_IMAGE
+          az webapp restart \
+            --name ${{ secrets.AZURE_WEBAPP_NAME }} \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }}
+
+      - name: Output Azure Web App URL
+        run: |
+          echo "Azure Web App deployed to: https://${{ secrets.AZURE_WEBAPP_NAME }}.azurewebsites.net"
